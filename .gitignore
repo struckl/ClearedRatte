@@ -1,0 +1,8 @@
+bin/
+obj/
+Releases/
+.vs/
+.venv/
+.env
+__pycache__/
+.claude/
