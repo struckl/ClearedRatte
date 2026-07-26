@@ -20,6 +20,8 @@ public class Plugin : BaseUnityPlugin
     internal static ConfigEntry<bool> HighwayInTheSky;
     internal static ConfigEntry<bool> ApproachInstruments;
     internal static ConfigEntry<bool> GlideslopeWithGearUp;
+    internal static ConfigEntry<float> DisplayScale;
+    internal static ConfigEntry<int> TunnelGates;
     internal static ConfigEntry<KeyboardShortcut> SelectKey;
     internal static ConfigEntry<bool> DeclutterOnSelect;
     internal static ConfigEntry<bool> HideUnitMarkers;
@@ -58,6 +60,16 @@ public class Plugin : BaseUnityPlugin
         ApproachInstruments = Config.Bind(
             "Approach Display", "ApproachInstruments", true,
             "ILS-style localizer and glidepath scales, a virtual PAPI and a data block, drawn at the velocity vector.");
+        DisplayScale = Config.Bind(
+            "Approach Display", "DisplayScale", 1f,
+            new ConfigDescription(
+                "Size of the deviation cluster and its readout. Below 1 is tighter and further out of the way.",
+                new AcceptableValueRange<float>(0.4f, 2f)));
+        TunnelGates = Config.Bind(
+            "Approach Display", "TunnelGates", 9,
+            new ConfigDescription(
+                "How many gates the tunnel is built from. Fewer is cleaner, more reaches further out.",
+                new AcceptableValueRange<int>(3, 14)));
         GlideslopeWithGearUp = Config.Bind(
             "Approach Display", "GlideslopeWithGearUp", true,
             "With HighwayInTheSky off: draw the native glideslope line as soon as an airbase is selected, instead of only with the gear down.");

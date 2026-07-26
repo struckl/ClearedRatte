@@ -27,11 +27,8 @@ internal static class ApproachDisplay
     /// <summary>Angles at which each PAPI light flips from red to white.</summary>
     private static readonly float[] PapiThresholds = { -0.5f, -0.17f, 0.17f, 0.5f };
 
-    /// <summary>
-    /// Gate distances from the threshold, geometric so that perspective spreads
-    /// them roughly evenly on screen at any range.
-    /// </summary>
-    private static readonly float[] GateDistances = BuildGateDistances();
+    private static float[] gateDistances;
+    private static int gateCount;
 
     private static Transform parent;
     private static Image lineTemplate;
@@ -41,16 +38,25 @@ internal static class ApproachDisplay
     private static int linesUsed;
     private static int textsUsed;
 
-    private static float[] BuildGateDistances()
+    /// <summary>
+    /// Gate distances from the threshold, geometric so that perspective spreads
+    /// them roughly evenly on screen at any range.
+    /// </summary>
+    private static float[] GateDistances()
     {
-        var distances = new float[12];
+        int count = Mathf.Clamp(Plugin.TunnelGates.Value, 3, 14);
+        if (gateDistances != null && gateCount == count)
+            return gateDistances;
+
+        gateDistances = new float[count];
         float distance = 300f;
-        for (int i = 0; i < distances.Length; i++)
+        for (int i = 0; i < count; i++)
         {
-            distances[i] = distance;
-            distance *= 1.5f;
+            gateDistances[i] = distance;
+            distance *= 1.7f;
         }
-        return distances;
+        gateCount = count;
+        return gateDistances;
     }
 
     public static void Draw(AirbaseOverlay overlay, Aircraft aircraft,
@@ -100,7 +106,13 @@ internal static class ApproachDisplay
         return parent != null && candidate != null && parent.IsChildOf(candidate.transform);
     }
 
-    /// <summary>The tunnel of gates, plus the rails that make it read as a road.</summary>
+    /// <summary>
+    /// The tunnel of gates, plus the rails that make it read as a road.
+    ///
+    /// Gates fade with distance from the aircraft and the touchdown frame stays
+    /// bright, so the corridor recedes into the aim point instead of every line
+    /// competing for attention at the same weight.
+    /// </summary>
     private static void DrawHighway(Camera camera, Aircraft aircraft,
         Airbase.Runway.RunwayUsage usage, in ApproachState state, Color color)
     {
@@ -108,18 +120,26 @@ internal static class ApproachDisplay
         float halfWidth = Mathf.Clamp(runway.GetWidth() * 1.2f, 25f, 70f);
         Vector3 across = state.Right * halfWidth;
         Vector3 up = Vector3.up * (halfWidth * 0.45f);
-        Color rail = new Color(color.r, color.g, color.b, color.a * 0.4f);
+        float span = Mathf.Max(state.Distance, 1f);
+        float[] gates = GateDistances();
 
         Vector3 previousLeft = Vector3.zero;
         Vector3 previousRight = Vector3.zero;
+        float previousAlpha = 0f;
         bool hasPrevious = false;
 
-        // Index -1 is the touchdown gate, the rest recede back up the glidepath.
-        for (int i = -1; i < GateDistances.Length; i++)
+        // Index -1 is the touchdown frame, the rest recede back up the glidepath.
+        for (int i = -1; i < gates.Length; i++)
         {
-            float along = i < 0 ? 0f : GateDistances[i];
+            bool aimFrame = i < 0;
+            float along = aimFrame ? 0f : gates[i];
             if (along > state.Distance)
                 break;
+
+            float nearness = 1f - Mathf.Clamp01((state.Distance - along) / span);
+            float alpha = aimFrame ? 1f : Mathf.Lerp(0.2f, 0.85f, nearness);
+            Color gate = Fade(color, alpha);
+            float width = aimFrame ? 1.8f : 1f;
 
             Vector3 center = runway.GetGlideslopeAimpoint(
                 aircraft, along, usage.Reverse, state.TimeToReach(along));
@@ -128,19 +148,23 @@ internal static class ApproachDisplay
             Vector3 topLeft = center - across + up;
             Vector3 topRight = center + across + up;
 
-            float width = i < 0 ? 2f : 1f;
-            WorldLine(camera, bottomLeft, bottomRight, color, width);
-            WorldLine(camera, bottomRight, topRight, color, width);
-            WorldLine(camera, topRight, topLeft, color, width);
-            WorldLine(camera, topLeft, bottomLeft, color, width);
+            WorldLine(camera, bottomLeft, bottomRight, gate, width);
+            WorldLine(camera, topLeft, topRight, gate, width);
+            // Uprights carry the frame; keeping them lighter than the horizontals
+            // stops the far gates reading as a stack of solid boxes.
+            Color upright = aimFrame ? gate : Fade(color, alpha * 0.7f);
+            WorldLine(camera, bottomRight, topRight, upright, width);
+            WorldLine(camera, topLeft, bottomLeft, upright, width);
 
             if (hasPrevious)
             {
+                Color rail = Fade(color, Mathf.Min(previousAlpha, alpha) * 0.45f);
                 WorldLine(camera, previousLeft, bottomLeft, rail, 1f);
                 WorldLine(camera, previousRight, bottomRight, rail, 1f);
             }
             previousLeft = bottomLeft;
             previousRight = bottomRight;
+            previousAlpha = alpha;
             hasPrevious = true;
         }
     }
@@ -167,39 +191,40 @@ internal static class ApproachDisplay
     /// <summary>Deviation scales, virtual PAPI and data block, hung off the velocity vector.</summary>
     private static void DrawInstruments(in ApproachState state, Color color)
     {
-        float unit = Screen.height / 1080f;
+        float unit = Screen.height / 1080f * Mathf.Clamp(Plugin.DisplayScale.Value, 0.4f, 2f);
         Vector3 anchor = GetAnchor();
-        Color dim = new Color(color.r, color.g, color.b, color.a * 0.5f);
-        float scale = 80f * unit;
+        Color dim = Fade(color, 0.35f);
+        float scale = 66f * unit;
+        float offset = 82f * unit;
 
         // Localizer: horizontal scale below the anchor, needle deflects toward the course.
-        float localizerY = anchor.y - 110f * unit;
+        float localizerY = anchor.y - offset;
         for (int i = -2; i <= 2; i++)
         {
             float x = anchor.x + i * scale * 0.5f;
-            float tick = (i == 0 ? 11f : 6f) * unit;
+            float tick = (i == 0 ? 7f : 3f) * unit;
             ScreenLine(new Vector3(x, localizerY - tick), new Vector3(x, localizerY + tick), dim, 1f);
         }
-        float localizer = Mathf.Clamp(-state.LocalizerError / LocalizerFullScale, -1.15f, 1.15f);
+        float localizer = Mathf.Clamp(-state.LocalizerError / LocalizerFullScale, -1.12f, 1.12f);
         ScreenLine(
-            new Vector3(anchor.x + localizer * scale, localizerY - 17f * unit),
-            new Vector3(anchor.x + localizer * scale, localizerY + 17f * unit), color, 2.5f);
+            new Vector3(anchor.x + localizer * scale, localizerY - 11f * unit),
+            new Vector3(anchor.x + localizer * scale, localizerY + 11f * unit), color, 2f);
 
         // Glidepath: vertical scale right of the anchor, needle deflects toward the path.
-        float glidepathX = anchor.x + 110f * unit;
+        float glidepathX = anchor.x + offset;
         for (int i = -2; i <= 2; i++)
         {
             float y = anchor.y + i * scale * 0.5f;
-            float tick = (i == 0 ? 11f : 6f) * unit;
+            float tick = (i == 0 ? 7f : 3f) * unit;
             ScreenLine(new Vector3(glidepathX - tick, y), new Vector3(glidepathX + tick, y), dim, 1f);
         }
-        float glidepath = Mathf.Clamp(-state.GlidepathError / GlidepathFullScale, -1.15f, 1.15f);
+        float glidepath = Mathf.Clamp(-state.GlidepathError / GlidepathFullScale, -1.12f, 1.12f);
         ScreenLine(
-            new Vector3(glidepathX - 17f * unit, anchor.y + glidepath * scale),
-            new Vector3(glidepathX + 17f * unit, anchor.y + glidepath * scale), color, 2.5f);
+            new Vector3(glidepathX - 11f * unit, anchor.y + glidepath * scale),
+            new Vector3(glidepathX + 11f * unit, anchor.y + glidepath * scale), color, 2f);
 
         DrawPapi(state, anchor, unit);
-        DrawDataBlock(state, anchor, unit, color);
+        DrawDataBlock(state, anchor, unit, localizerY, color);
     }
 
     /// <summary>Four lights, white once you are above that light's angle. On path reads white white red red.</summary>
@@ -207,42 +232,46 @@ internal static class ApproachDisplay
     {
         Color white = Color.white;
         Color red = Assets != null ? Assets.HUDHostile : new Color(1f, 0.3f, 0.25f);
-        float y = anchor.y + 120f * unit;
-        float spacing = 26f * unit;
-        float half = 7f * unit;
+        float y = anchor.y + 86f * unit;
+        float spacing = 17f * unit;
+        float half = 4.5f * unit;
 
         for (int i = 0; i < PapiThresholds.Length; i++)
         {
             float x = anchor.x + (i - 1.5f) * spacing;
             Color light = state.GlidepathError > PapiThresholds[i] ? white : red;
-            ScreenLine(new Vector3(x - half, y), new Vector3(x + half, y), light, 4f);
+            ScreenLine(new Vector3(x - half, y), new Vector3(x + half, y), light, 3f);
         }
     }
 
-    private static void DrawDataBlock(in ApproachState state, Vector3 anchor, float unit, Color color)
+    /// <summary>
+    /// Range, time to go and speed against reference. Deviation is deliberately
+    /// absent: the needles and the PAPI already say it, and saying it twice is
+    /// what makes a HUD look like a debug overlay.
+    /// </summary>
+    private static void DrawDataBlock(in ApproachState state, Vector3 anchor, float unit,
+        float localizerY, Color color)
     {
         Text text = NextText();
         if (text == null)
             return;
 
-        string glidepath = $"GP {state.GlidepathAngle:0.0} / {state.RequiredAngle:0.0}"
-            + $"  {(state.GlidepathError >= 0f ? "+" : "-")}{Mathf.Abs(state.GlidepathError):0.0}";
-        string localizer = Mathf.Abs(state.LocalizerError) < 0.05f
-            ? "ON CRS"
-            : $"{(state.LocalizerError > 0f ? "R" : "L")} {Mathf.Abs(state.LocalizerError):0.0}";
         string timeToGo = state.TimeToGo > 0f
-            ? $"TTG {Mathf.FloorToInt(state.TimeToGo / 60f)}:{Mathf.FloorToInt(state.TimeToGo % 60f):00}"
-            : "TTG --:--";
+            ? $"{Mathf.FloorToInt(state.TimeToGo / 60f)}:{Mathf.FloorToInt(state.TimeToGo % 60f):00}"
+            : "--:--";
+        float excess = state.Speed - state.ReferenceSpeed;
+        string reference = $"REF {(excess >= 0f ? "+" : "-")}{UnitConverter.SpeedReading(Mathf.Abs(excess))}";
 
         text.text = $"{UnitConverter.DistanceReading(state.Slant)}   {timeToGo}\n"
-            + $"{glidepath}   {localizer}\n"
-            + $"{UnitConverter.SpeedReading(state.Speed)}   REF {UnitConverter.SpeedReading(state.ReferenceSpeed)}";
+            + $"{UnitConverter.SpeedReading(state.Speed)}   {reference}";
         text.color = color;
         text.alignment = TextAnchor.UpperCenter;
         text.horizontalOverflow = HorizontalWrapMode.Overflow;
         text.verticalOverflow = VerticalWrapMode.Overflow;
-        text.fontSize = Mathf.Max(10, (int)(PlayerSettings.overlayTextSize * 0.75f));
-        text.transform.position = new Vector3(anchor.x, anchor.y - 145f * unit, 0f);
+        text.fontSize = Mathf.Max(9, Mathf.RoundToInt(
+            PlayerSettings.overlayTextSize * 0.5f * Mathf.Clamp(Plugin.DisplayScale.Value, 0.4f, 2f)));
+        text.transform.position = new Vector3(
+            Mathf.Round(anchor.x), Mathf.Round(localizerY - 22f * unit), 0f);
         text.enabled = true;
     }
 
@@ -382,27 +411,43 @@ internal static class ApproachDisplay
         else if (aheadB < near)
             b = Vector3.Lerp(b, a, (near - aheadB) / (aheadA - aheadB));
 
-        ScreenLine(camera.WorldToScreenPoint(a), camera.WorldToScreenPoint(b), color, width);
+        ScreenLine(camera.WorldToScreenPoint(a), camera.WorldToScreenPoint(b), color, width, snap: false);
     }
 
     /// <summary>
     /// Position, rotate and stretch one pooled line between two screen points —
     /// the same trick AirbaseOverlay.DrawRunwayBorders uses.
+    ///
+    /// Instrument lines are snapped to whole device pixels: a thin line landing
+    /// on a fractional pixel gets smeared across two of them by the sampler,
+    /// which is most of what makes hand-drawn HUD graphics look soft. World
+    /// geometry is left unsnapped — quantising something that moves every frame
+    /// trades a little softness for shimmer.
     /// </summary>
-    private static void ScreenLine(Vector3 from, Vector3 to, Color color, float width)
+    private static void ScreenLine(Vector3 from, Vector3 to, Color color, float width, bool snap = true)
     {
         Image line = NextLine();
         if (line == null)
             return;
 
-        Vector3 delta = new Vector3(to.x - from.x, to.y - from.y, 0f);
-        line.transform.position = new Vector3(from.x, from.y, 0f);
+        float x = snap ? Mathf.Round(from.x) : from.x;
+        float y = snap ? Mathf.Round(from.y) : from.y;
+        Vector3 delta = snap
+            ? new Vector3(Mathf.Round(to.x) - x, Mathf.Round(to.y) - y, 0f)
+            : new Vector3(to.x - x, to.y - y, 0f);
+
+        line.transform.position = new Vector3(x, y, 0f);
         line.transform.eulerAngles =
             new Vector3(0f, 0f, -Mathf.Atan2(delta.x, delta.y) * Mathf.Rad2Deg);
         line.transform.localScale =
             new Vector3(width, 1f + delta.magnitude * (1080f / Screen.height), 1f);
         line.color = color;
         line.enabled = true;
+    }
+
+    private static Color Fade(Color color, float alpha)
+    {
+        return new Color(color.r, color.g, color.b, color.a * alpha);
     }
 
     /// <summary>Grab the graphics we clone from, once per scene.</summary>

@@ -66,11 +66,20 @@ velocity, using the same aimpoint math the game uses.
 
 **Deviation cluster.** Hung off the velocity vector: an ILS localizer scale
 (±2.5°) and glidepath scale (±0.7°) with needles you fly toward, a virtual
-PAPI that reads white-white-red-red on path, and a data block with slant
-range, time to go, actual vs. required glidepath angle, course deviation, and
-your speed against the reference speed the tower cleared you at.
+PAPI that reads white-white-red-red on path, and two lines of numbers — slant
+range and time to go, then speed and how far off the reference speed you are.
+Deviation is deliberately not written out: the needles and the PAPI already
+say it, and saying it twice is what makes a HUD read as a debug overlay.
 
-Everything shifts green → amber → red with deviation.
+Everything shifts green → amber → red with deviation. Instrument lines are
+snapped to whole device pixels so hairlines stay hairlines; world geometry is
+left unsnapped, because quantising something that moves every frame trades a
+little softness for shimmer. Gates fade with distance and the touchdown frame
+stays bright, so the corridor recedes into the aim point instead of every line
+competing at the same weight.
+
+`DisplayScale` sizes the cluster and its text; `TunnelGates` sets how many
+gates the tunnel is built from.
 
 ## Declutter
 
@@ -122,6 +131,8 @@ Settings are editable in-game with
 | --- | --- | --- |
 | `HighwayInTheSky` | `true` | Fly-through gates down the glidepath, with runway outline and rails, replacing the native glideslope line. |
 | `ApproachInstruments` | `true` | Localizer and glidepath scales, virtual PAPI and data block at the velocity vector. |
+| `DisplayScale` | `1.0` | Size of the deviation cluster and its readout, `0.4`–`2.0`. Below 1 is tighter and further out of the way. |
+| `TunnelGates` | `9` | How many gates the tunnel is built from, `3`–`14`. Fewer is cleaner, more reaches further out. |
 | `GlideslopeWithGearUp` | `true` | With `HighwayInTheSky` off: draw the native line on selection instead of only with the gear down. |
 
 Turn both display options off to keep the stock glideslope line and use Cleared
