@@ -36,8 +36,31 @@ runway is chosen with the same query the game uses for its own auto-landing,
 so aircraft weight, landing speed, runway length and tailhook are all taken
 into account — carriers included.
 
-The glideslope line appears immediately on selection, gear up or down, all the
+The approach picture appears immediately on selection, gear up or down, all the
 way from the other side of the map if you want it.
+
+## The approach picture
+
+Instead of the game's single glideslope line, Cleared Ratte draws the approach
+the way a modern HUD would. Every line is a clone of one of the game's own
+overlay graphics, so it inherits the HUD material, canvas and scaling rather
+than looking bolted on.
+
+**Highway in the sky.** A tunnel of gates sitting on the 3.4° glidepath,
+spaced geometrically so perspective spreads them evenly at any range, with
+rails along the bottom corners and a heavier gate at the touchdown point. The
+runway outline is drawn from any distance. On path the gates nest around your
+velocity vector; off path the stack visibly skews, long before a needle would
+move. Carrier decks are handled — gate positions lead the deck by its own
+velocity, using the same aimpoint math the game uses.
+
+**Deviation cluster.** Hung off the velocity vector: an ILS localizer scale
+(±2.5°) and glidepath scale (±0.7°) with needles you fly toward, a virtual
+PAPI that reads white-white-red-red on path, and a data block with slant
+range, time to go, actual vs. required glidepath angle, course deviation, and
+your speed against the reference speed the tower cleared you at.
+
+Everything shifts green → amber → red with deviation.
 
 ## Installation
 
@@ -56,15 +79,27 @@ way from the other side of the map if you want it.
 
 ## Configuration
 
-All settings live under the `Approach Assist` section and are editable in-game
-with [ConfigurationManager](https://github.com/BepInEx/BepInEx.ConfigurationManager).
+Settings are editable in-game with
+[ConfigurationManager](https://github.com/BepInEx/BepInEx.ConfigurationManager).
+
+`Approach Assist` — picking the base:
 
 | Setting | Default | Description |
 | --- | --- | --- |
 | `Enabled` | `true` | Select a friendly airbase for landing guidance at any range. |
 | `AutoSelectOnGearDown` | `true` | Lowering the gear selects the nearest friendly airbase automatically. |
-| `GlideslopeWithGearUp` | `true` | Draw the glideslope as soon as a base is selected, instead of only with the gear down. |
 | `SelectKey` | `L` | Cycles friendly airbases nearest-first; one press past the last turns guidance off. Accepts `JoystickButton0`–`19` too. |
+
+`Approach Display` — what gets drawn:
+
+| Setting | Default | Description |
+| --- | --- | --- |
+| `HighwayInTheSky` | `true` | Fly-through gates down the glidepath, with runway outline and rails, replacing the native glideslope line. |
+| `ApproachInstruments` | `true` | Localizer and glidepath scales, virtual PAPI and data block at the velocity vector. |
+| `GlideslopeWithGearUp` | `true` | With `HighwayInTheSky` off: draw the native line on selection instead of only with the gear down. |
+
+Turn both display options off to keep the stock glideslope line and use Cleared
+Ratte purely for picking the base.
 
 ## Building
 

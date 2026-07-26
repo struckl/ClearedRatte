@@ -54,6 +54,11 @@ internal static class ApproachAssist
 
     public static void Tick()
     {
+        // The overlay redraws in LateUpdate, so clearing here never flickers —
+        // it just means the picture goes away even if the overlay stops ticking.
+        if (!Plugin.Enabled.Value || chosenAirbase == null || !HasLiveAircraft())
+            ApproachDisplay.Hide();
+
         if (!Plugin.Enabled.Value)
             return;
 
@@ -149,16 +154,21 @@ internal static class ApproachAssist
     public static Airbase.Runway.RunwayUsage? RequestLanding(Airbase airbase)
     {
         AircraftParameters parameters = aircraft.GetAircraftParameters();
-        float landingSpeed = Mathf.Sqrt(
-            aircraft.GetMass() / aircraft.definition.aircraftInfo.maxWeight) * parameters.takeoffSpeed;
         RunwayQuery query = new RunwayQuery
         {
             RunwayType = RunwayQueryType.Any,
             MinSize = parameters.takeoffDistance,
             TailHook = aircraft.weaponManager.HasTailHook(),
-            LandingSpeed = landingSpeed,
+            LandingSpeed = ReferenceSpeed(aircraft),
         };
         return airbase.RequestLanding(aircraft, query);
+    }
+
+    /// <summary>Approach speed the tower clears you at, scaled by how heavy you still are.</summary>
+    public static float ReferenceSpeed(Aircraft aircraft)
+    {
+        return Mathf.Sqrt(aircraft.GetMass() / aircraft.definition.aircraftInfo.maxWeight)
+            * aircraft.GetAircraftParameters().takeoffSpeed;
     }
 
     public static bool HasLiveAircraft()
@@ -305,9 +315,9 @@ internal static class ApproachAssistOverlayPatch
 }
 
 /// <summary>
-/// The native overlay only draws the glideslope with the gear down. Once a base
-/// is deliberately selected, draw it straight away by calling the game's own
-/// renderer after its LateUpdate switched the line off.
+/// Everything the overlay draws for the chosen base, after its own LateUpdate:
+/// the enhanced approach picture, or — when that is switched off — the native
+/// glideslope line, which the game otherwise only draws with the gear down.
 /// </summary>
 [HarmonyPatch(typeof(AirbaseOverlay), "LateUpdate")]
 internal static class ApproachAssistGlideslopePatch
@@ -318,6 +328,8 @@ internal static class ApproachAssistGlideslopePatch
         AccessTools.Field(typeof(AirbaseOverlay), "glideslope");
     private static readonly FieldInfo AimPointField =
         AccessTools.Field(typeof(AirbaseOverlay), "glideslopeAimPoint");
+    private static readonly FieldInfo LandingField =
+        AccessTools.Field(typeof(AirbaseOverlay), "landing");
     private static readonly MethodInfo DrawGlideslope =
         AccessTools.Method(typeof(AirbaseOverlay), "DrawGlideslope");
 
@@ -325,27 +337,54 @@ internal static class ApproachAssistGlideslopePatch
 
     private static void Postfix(AirbaseOverlay __instance)
     {
-        if (DrawGlideslope == null || RunwayUsageField == null
-            || GlideslopeField == null || AimPointField == null
-            || !Plugin.GlideslopeWithGearUp.Value || !ApproachAssist.IsReadyToForce())
-            return;
-
         Aircraft aircraft = ApproachAssist.Aircraft;
-        if (aircraft == null || aircraft.gearDeployed)
-            return; // Gear down: the native path already drew it.
+        Airbase.Runway.RunwayUsage? usage = RunwayUsageField != null
+            ? (Airbase.Runway.RunwayUsage?)RunwayUsageField.GetValue(__instance)
+            : null;
 
-        var usage = (Airbase.Runway.RunwayUsage?)RunwayUsageField.GetValue(__instance);
-        if (!usage.HasValue || usage.Value.Runway == null)
+        if (!ApproachAssist.IsReadyToForce() || aircraft == null
+            || !usage.HasValue || usage.Value.Runway == null)
+        {
+            ApproachDisplay.Hide();
             return;
-        if (!(GlideslopeField.GetValue(__instance) is Image glideslope)
-            || !(AimPointField.GetValue(__instance) is Image aimPoint))
-            return;
+        }
 
+        bool highway = Plugin.HighwayInTheSky.Value;
+        bool instruments = Plugin.ApproachInstruments.Value;
+
+        if (highway)
+            SetNativeGlideslope(__instance, false); // The tunnel replaces the single line.
+        else if (!aircraft.gearDeployed && Plugin.GlideslopeWithGearUp.Value)
+            DrawNativeGlideslope(__instance, aircraft, usage.Value);
+
+        if (highway || instruments)
+        {
+            bool nativeRunwayBox = LandingField != null && (bool)LandingField.GetValue(__instance);
+            ApproachDisplay.Draw(__instance, aircraft, usage.Value, highway, instruments, nativeRunwayBox);
+        }
+        else
+        {
+            ApproachDisplay.Hide();
+        }
+    }
+
+    /// <summary>Run the game's own glideslope renderer, which LateUpdate skips with the gear up.</summary>
+    private static void DrawNativeGlideslope(AirbaseOverlay overlay, Aircraft aircraft,
+        Airbase.Runway.RunwayUsage usage)
+    {
+        if (DrawGlideslope == null)
+            return;
         drawArguments[0] = aircraft;
-        drawArguments[1] = usage.Value;
-        bool drawn = (bool)DrawGlideslope.Invoke(__instance, drawArguments);
-        glideslope.enabled = drawn;
-        aimPoint.enabled = drawn;
+        drawArguments[1] = usage;
+        SetNativeGlideslope(overlay, (bool)DrawGlideslope.Invoke(overlay, drawArguments));
+    }
+
+    private static void SetNativeGlideslope(AirbaseOverlay overlay, bool visible)
+    {
+        if (GlideslopeField?.GetValue(overlay) is Image glideslope)
+            glideslope.enabled = visible;
+        if (AimPointField?.GetValue(overlay) is Image aimPoint)
+            aimPoint.enabled = visible;
     }
 }
 
