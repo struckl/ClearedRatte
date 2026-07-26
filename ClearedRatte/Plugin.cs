@@ -21,6 +21,12 @@ public class Plugin : BaseUnityPlugin
     internal static ConfigEntry<bool> ApproachInstruments;
     internal static ConfigEntry<bool> GlideslopeWithGearUp;
     internal static ConfigEntry<KeyboardShortcut> SelectKey;
+    internal static ConfigEntry<bool> DeclutterOnSelect;
+    internal static ConfigEntry<bool> HideUnitMarkers;
+    internal static ConfigEntry<bool> HideTargetMarkers;
+    internal static ConfigEntry<bool> HideWeaponUI;
+    internal static ConfigEntry<bool> HideWeaponStatus;
+    internal static ConfigEntry<bool> HideThreatList;
 
     private void Awake()
     {
@@ -57,5 +63,24 @@ public class Plugin : BaseUnityPlugin
         SelectKey = Config.Bind(
             "Approach Assist", "SelectKey", new KeyboardShortcut(KeyCode.L),
             "Optional: cycles friendly airbases nearest-first; one press past the last turns guidance off. Also accepts JoystickButton0-19 for HOTAS/controller. Clicking an airbase icon on the maximized map works too.");
+
+        DeclutterOnSelect = Config.Bind(
+            "Approach Declutter", "DeclutterOnSelect", true,
+            "Clear combat clutter off the HUD as soon as an airbase is selected, instead of waiting for the gear-down hiding on short final. Everything comes back when guidance is turned off.");
+        HideUnitMarkers = Config.Bind(
+            "Approach Declutter", "HideUnitMarkers", true,
+            "Hide the HUD unit markers, objective pointer and hit markers.");
+        HideTargetMarkers = Config.Bind(
+            "Approach Declutter", "HideTargetMarkers", true,
+            "Hide the target designator, off-screen target arrow and target label.");
+        HideWeaponUI = Config.Bind(
+            "Approach Declutter", "HideWeaponUI", false,
+            "Hide the weapon reticle in the middle of the HUD. Note that the weapon UI stops updating while it is hidden.");
+        HideWeaponStatus = Config.Bind(
+            "Approach Declutter", "HideWeaponStatus", false,
+            "Hide the weapon status panel in the top right corner.");
+        HideThreatList = Config.Bind(
+            "Approach Declutter", "HideThreatList", false,
+            "Hide the threat list. Off by default: being shot at on final is worth knowing about.");
     }
 }

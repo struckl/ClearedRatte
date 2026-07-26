@@ -62,6 +62,21 @@ your speed against the reference speed the tower cleared you at.
 
 Everything shifts green → amber → red with deviation.
 
+## Declutter
+
+The game ships an unfinished landing mode — `CombatHUD.landingMode` and
+`HUDUnitMarker.SetLandingMode()` exist but nothing ever switches them on. The
+only decluttering you actually get is unit markers hiding when the gear comes
+down, which is why it feels like it happens at landing clearance, and why it
+happens far too late to help you find the runway.
+
+Cleared Ratte clears the combat clutter the moment you select a base, and puts
+back exactly what it took away when you turn guidance off. By default that is
+the unit markers, objective pointer and hit markers, plus the target
+designator, off-screen target arrow and target label. The weapon reticle,
+weapon status panel and threat list can be added, but are left alone by
+default — being shot at on final is worth knowing about.
+
 ## Installation
 
 1. Install [BepInEx 5](https://github.com/BepInEx/BepInEx/releases) into the
@@ -100,6 +115,17 @@ Settings are editable in-game with
 
 Turn both display options off to keep the stock glideslope line and use Cleared
 Ratte purely for picking the base.
+
+`Approach Declutter` — what gets cleared away while a base is selected:
+
+| Setting | Default | Description |
+| --- | --- | --- |
+| `DeclutterOnSelect` | `true` | Master switch. Clears the HUD on selection instead of waiting for the gear-down hiding on short final. |
+| `HideUnitMarkers` | `true` | HUD unit markers, objective pointer and hit markers. |
+| `HideTargetMarkers` | `true` | Target designator, off-screen target arrow and target label. |
+| `HideWeaponUI` | `false` | The weapon reticle in the middle of the HUD. The weapon UI stops updating while hidden. |
+| `HideWeaponStatus` | `false` | The weapon status panel in the top right corner. |
+| `HideThreatList` | `false` | The threat list. |
 
 ## Building
 

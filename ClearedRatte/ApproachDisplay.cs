@@ -91,6 +91,15 @@ internal static class ApproachDisplay
         Flush();
     }
 
+    /// <summary>
+    /// True when the approach picture lives inside that object, so the HUD
+    /// declutter knows not to switch off the layer we draw into.
+    /// </summary>
+    public static bool DrawsInside(GameObject candidate)
+    {
+        return parent != null && candidate != null && parent.IsChildOf(candidate.transform);
+    }
+
     /// <summary>The tunnel of gates, plus the rails that make it read as a road.</summary>
     private static void DrawHighway(Camera camera, Aircraft aircraft,
         Airbase.Runway.RunwayUsage usage, in ApproachState state, Color color)

@@ -54,10 +54,13 @@ internal static class ApproachAssist
 
     public static void Tick()
     {
+        bool guiding = Plugin.Enabled.Value && chosenAirbase != null && HasLiveAircraft();
+
         // The overlay redraws in LateUpdate, so clearing here never flickers —
         // it just means the picture goes away even if the overlay stops ticking.
-        if (!Plugin.Enabled.Value || chosenAirbase == null || !HasLiveAircraft())
+        if (!guiding)
             ApproachDisplay.Hide();
+        HudDeclutter.Set(guiding && Plugin.DeclutterOnSelect.Value);
 
         if (!Plugin.Enabled.Value)
             return;
