@@ -118,11 +118,10 @@ internal static class ApproachAssist
         Airbase previous = chosenAirbase;
         chosenAirbase = airbase;
 
-        string runway = "";
-        Airbase.Runway.RunwayUsage? usage = RequestLanding(airbase);
-        if (usage.HasValue)
-            runway = ", runway " + usage.Value.GetName();
-        Report($"Approach: {airbase.SavedAirbase.DisplayName}{runway}");
+        Airbase.Runway.RunwayUsage? usage = RequestLanding(airbase, out bool cleared);
+        string runway = usage.HasValue ? ", runway " + usage.Value.GetName() : "";
+        string caveat = usage.HasValue && !cleared ? " — guidance only, tower will not clear you" : "";
+        Report($"Approach: {airbase.SavedAirbase.DisplayName}{runway}{caveat}");
 
         MapAccess.HighlightAirbase(previous, airbase);
         // Don't wait for the overlay's 2 s pass — show the new glideslope now.
@@ -143,7 +142,8 @@ internal static class ApproachAssist
         var bases = new List<Airbase>();
         foreach (Airbase airbase in aircraft.NetworkHQ.GetAirbases())
         {
-            if (airbase != null && airbase.GetLandingRunway() != null)
+            // A carrier reports itself disabled once the ship is dead.
+            if (airbase != null && !airbase.disabled && airbase.GetLandingRunway() != null)
                 bases.Add(airbase);
         }
         Vector3 position = aircraft.transform.position;
@@ -153,18 +153,41 @@ internal static class ApproachAssist
         return bases;
     }
 
-    /// <summary>Same runway query the native overlay builds for auto-landing.</summary>
     public static Airbase.Runway.RunwayUsage? RequestLanding(Airbase airbase)
     {
-        AircraftParameters parameters = aircraft.GetAircraftParameters();
+        return RequestLanding(airbase, out _);
+    }
+
+    /// <summary>
+    /// The runway the tower would give you, using the same query the native
+    /// overlay builds for auto-landing. If that comes back empty — an arrestor
+    /// deck without a tailhook, or a strip the game thinks is too short — fall
+    /// back to a permissive query so you still get a picture. Whether it clears
+    /// you is the tower's business; you asked to be shown the approach.
+    /// </summary>
+    public static Airbase.Runway.RunwayUsage? RequestLanding(Airbase airbase, out bool cleared)
+    {
+        float landingSpeed = ReferenceSpeed(aircraft);
         RunwayQuery query = new RunwayQuery
         {
             RunwayType = RunwayQueryType.Any,
-            MinSize = parameters.takeoffDistance,
+            MinSize = aircraft.GetAircraftParameters().takeoffDistance,
             TailHook = aircraft.weaponManager.HasTailHook(),
-            LandingSpeed = ReferenceSpeed(aircraft),
+            LandingSpeed = landingSpeed,
         };
-        return airbase.RequestLanding(aircraft, query);
+
+        Airbase.Runway.RunwayUsage? usage = airbase.RequestLanding(aircraft, query);
+        cleared = usage.HasValue;
+        if (cleared)
+            return usage;
+
+        return airbase.RequestLanding(aircraft, new RunwayQuery
+        {
+            RunwayType = RunwayQueryType.Any,
+            MinSize = 0f,
+            TailHook = true,
+            LandingSpeed = landingSpeed,
+        });
     }
 
     /// <summary>Approach speed the tower clears you at, scaled by how heavy you still are.</summary>

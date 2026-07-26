@@ -321,20 +321,32 @@ internal static class ApproachDisplay
 
         public static ApproachState Evaluate(Aircraft aircraft, Airbase.Runway.RunwayUsage usage)
         {
+            Vector3 position = aircraft.transform.position;
+            Vector3 deckVelocity = usage.Runway.GetVelocity();
+            Vector3 relativeVelocity = aircraft.rb.velocity - deckVelocity;
             Vector3 threshold = usage.GetEnd().position
                 + Vector3.up * (aircraft.definition.spawnOffset.y + 0.5f);
+
+            float slant = Vector3.Distance(position, threshold);
+            float closure = ClosureRate(relativeVelocity, position, threshold, slant);
+
+            // Aim where the deck will be when you get there, the same lead the
+            // gates use — otherwise the needles disagree with the tunnel by the
+            // length of the carrier's run, which is most of a mile from far out.
+            if (closure > 5f && deckVelocity.sqrMagnitude > 0.01f)
+            {
+                threshold += deckVelocity * (slant / closure);
+                slant = Vector3.Distance(position, threshold);
+                closure = ClosureRate(relativeVelocity, position, threshold, slant);
+            }
+
             Vector3 direction = usage.GetDirection();
             Vector3 forward = new Vector3(direction.x, 0f, direction.z).normalized;
             Vector3 right = Vector3.Cross(Vector3.up, forward).normalized;
 
-            Vector3 offset = aircraft.transform.position - threshold;
+            Vector3 offset = position - threshold;
             float distance = -Vector3.Dot(offset, forward);
             float lateral = Vector3.Dot(offset, right);
-            float slant = offset.magnitude;
-
-            float closure = slant > 1f
-                ? Vector3.Dot(aircraft.rb.velocity - usage.Runway.GetVelocity(), -offset / slant)
-                : 0f;
             float timeToGo = closure > 5f ? slant / closure : -1f;
 
             float glidepathAngle = distance > 1f
@@ -347,6 +359,11 @@ internal static class ApproachDisplay
             return new ApproachState(right, distance, slant, closure, timeToGo,
                 Mathf.Atan(GlidepathGrade) * Mathf.Rad2Deg, glidepathAngle, localizerError,
                 aircraft.rb.velocity.magnitude, ApproachAssist.ReferenceSpeed(aircraft));
+        }
+
+        private static float ClosureRate(Vector3 relativeVelocity, Vector3 position, Vector3 threshold, float slant)
+        {
+            return slant > 1f ? Vector3.Dot(relativeVelocity, (threshold - position) / slant) : 0f;
         }
     }
 

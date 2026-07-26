@@ -34,7 +34,17 @@ Whichever way you pick, the chosen base is confirmed in the action report
 along with the runway the tower assigned you, and highlighted on the map. The
 runway is chosen with the same query the game uses for its own auto-landing,
 so aircraft weight, landing speed, runway length and tailhook are all taken
-into account — carriers included.
+into account.
+
+If the tower would refuse you — an arrestor deck and no tailhook, or a strip
+the game considers too short — you still get the approach picture, and the
+report says so: *guidance only, tower will not clear you*. You asked to be
+shown the approach; whether it clears you is its business.
+
+Carrier decks are handled throughout. The deck is led by its own velocity, so
+gates, needles, range and time-to-go all point at where the deck will be when
+you arrive rather than where it is now — which is most of a mile out of date
+from a long final. Sunk carriers drop out of the cycle.
 
 The approach picture appears immediately on selection, gear up or down, all the
 way from the other side of the map if you want it.
