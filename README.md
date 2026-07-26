@@ -72,10 +72,11 @@ happens far too late to help you find the runway.
 
 Cleared Ratte clears the combat clutter the moment you select a base, and puts
 back exactly what it took away when you turn guidance off. By default that is
-the unit markers, objective pointer and hit markers, plus the target
-designator, off-screen target arrow and target label. The weapon reticle,
-weapon status panel and threat list can be added, but are left alone by
-default — being shot at on final is worth knowing about.
+the unit markers, objective pointer and hit markers, the target designator,
+off-screen target arrow and target label, and the floating airbase name and
+range marker — the approach picture already shows you where the base is. The
+weapon reticle, weapon status panel and threat list can be added, but are left
+alone by default — being shot at on final is worth knowing about.
 
 ## Installation
 
@@ -122,6 +123,7 @@ Ratte purely for picking the base.
 | --- | --- | --- |
 | `DeclutterOnSelect` | `true` | Master switch. Clears the HUD on selection instead of waiting for the gear-down hiding on short final. |
 | `HideUnitMarkers` | `true` | HUD unit markers, objective pointer and hit markers. |
+| `HideAirbaseLabel` | `true` | The floating airbase name and range marker for the selected base. |
 | `HideTargetMarkers` | `true` | Target designator, off-screen target arrow and target label. |
 | `HideWeaponUI` | `false` | The weapon reticle in the middle of the HUD. The weapon UI stops updating while hidden. |
 | `HideWeaponStatus` | `false` | The weapon status panel in the top right corner. |

@@ -333,6 +333,10 @@ internal static class ApproachAssistGlideslopePatch
         AccessTools.Field(typeof(AirbaseOverlay), "glideslopeAimPoint");
     private static readonly FieldInfo LandingField =
         AccessTools.Field(typeof(AirbaseOverlay), "landing");
+    private static readonly FieldInfo AirbaseMarkerField =
+        AccessTools.Field(typeof(AirbaseOverlay), "airbaseMarker");
+    private static readonly FieldInfo AirbaseLabelField =
+        AccessTools.Field(typeof(AirbaseOverlay), "airbaseLabel");
     private static readonly MethodInfo DrawGlideslope =
         AccessTools.Method(typeof(AirbaseOverlay), "DrawGlideslope");
 
@@ -344,9 +348,14 @@ internal static class ApproachAssistGlideslopePatch
         Airbase.Runway.RunwayUsage? usage = RunwayUsageField != null
             ? (Airbase.Runway.RunwayUsage?)RunwayUsageField.GetValue(__instance)
             : null;
+        bool guiding = ApproachAssist.IsReadyToForce() && aircraft != null;
 
-        if (!ApproachAssist.IsReadyToForce() || aircraft == null
-            || !usage.HasValue || usage.Value.Runway == null)
+        // The name-and-distance marker belongs to the declutter, but it has to
+        // be switched off here: the overlay re-enables it every LateUpdate.
+        if (guiding && Plugin.DeclutterOnSelect.Value && Plugin.HideAirbaseLabel.Value)
+            HideAirbaseMarker(__instance);
+
+        if (!guiding || !usage.HasValue || usage.Value.Runway == null)
         {
             ApproachDisplay.Hide();
             return;
@@ -380,6 +389,15 @@ internal static class ApproachAssistGlideslopePatch
         drawArguments[0] = aircraft;
         drawArguments[1] = usage;
         SetNativeGlideslope(overlay, (bool)DrawGlideslope.Invoke(overlay, drawArguments));
+    }
+
+    /// <summary>Drop the floating airbase name and range; the tunnel and data block say it better.</summary>
+    private static void HideAirbaseMarker(AirbaseOverlay overlay)
+    {
+        if (AirbaseMarkerField?.GetValue(overlay) is Image marker)
+            marker.enabled = false;
+        if (AirbaseLabelField?.GetValue(overlay) is Text label)
+            label.enabled = false;
     }
 
     private static void SetNativeGlideslope(AirbaseOverlay overlay, bool visible)

@@ -27,6 +27,7 @@ public class Plugin : BaseUnityPlugin
     internal static ConfigEntry<bool> HideWeaponUI;
     internal static ConfigEntry<bool> HideWeaponStatus;
     internal static ConfigEntry<bool> HideThreatList;
+    internal static ConfigEntry<bool> HideAirbaseLabel;
 
     private void Awake()
     {
@@ -70,6 +71,9 @@ public class Plugin : BaseUnityPlugin
         HideUnitMarkers = Config.Bind(
             "Approach Declutter", "HideUnitMarkers", true,
             "Hide the HUD unit markers, objective pointer and hit markers.");
+        HideAirbaseLabel = Config.Bind(
+            "Approach Declutter", "HideAirbaseLabel", true,
+            "Hide the floating airbase name and range marker for the selected base. The approach picture already shows you where it is.");
         HideTargetMarkers = Config.Bind(
             "Approach Declutter", "HideTargetMarkers", true,
             "Hide the target designator, off-screen target arrow and target label.");
