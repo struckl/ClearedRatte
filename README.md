@@ -22,8 +22,13 @@ Three ways to pick your landing base, whichever suits your setup:
   each further press cycles outwards, and one press past the last base turns
   guidance off again. Also accepts `JoystickButton0`–`19`, so it can live on
   a HOTAS.
-- **Click an airbase icon on the maximized map.** Those clicks are normally
-  dead once you are airborne (the native handler only serves spawn selection).
+- **Pick the base on the maximized map.** Click its icon, or put the map cursor
+  over it and press your map `Select` bind (mouse or controller). Clicking the
+  same base again turns guidance off.
+
+  The game blanks every airbase icon the moment you are sitting in an aircraft
+  — invisible and unclickable, because the native handler only serves spawn
+  selection — so Cleared Ratte keeps them drawn and clickable while you fly.
 
 Whichever way you pick, the chosen base is confirmed in the action report
 along with the runway the tower assigned you, and highlighted on the map. The
@@ -31,8 +36,8 @@ runway is chosen with the same query the game uses for its own auto-landing,
 so aircraft weight, landing speed, runway length and tailhook are all taken
 into account — carriers included.
 
-Lower the gear and the native glideslope line appears, all the way from the
-other side of the map if you want it.
+The glideslope line appears immediately on selection, gear up or down, all the
+way from the other side of the map if you want it.
 
 ## Installation
 
@@ -58,6 +63,7 @@ with [ConfigurationManager](https://github.com/BepInEx/BepInEx.ConfigurationMana
 | --- | --- | --- |
 | `Enabled` | `true` | Select a friendly airbase for landing guidance at any range. |
 | `AutoSelectOnGearDown` | `true` | Lowering the gear selects the nearest friendly airbase automatically. |
+| `GlideslopeWithGearUp` | `true` | Draw the glideslope as soon as a base is selected, instead of only with the gear down. |
 | `SelectKey` | `L` | Cycles friendly airbases nearest-first; one press past the last turns guidance off. Accepts `JoystickButton0`–`19` too. |
 
 ## Building

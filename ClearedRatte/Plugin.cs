@@ -17,6 +17,7 @@ public class Plugin : BaseUnityPlugin
 
     internal static ConfigEntry<bool> Enabled;
     internal static ConfigEntry<bool> AutoSelectOnGearDown;
+    internal static ConfigEntry<bool> GlideslopeWithGearUp;
     internal static ConfigEntry<KeyboardShortcut> SelectKey;
 
     private void Awake()
@@ -42,6 +43,9 @@ public class Plugin : BaseUnityPlugin
         AutoSelectOnGearDown = Config.Bind(
             "Approach Assist", "AutoSelectOnGearDown", true,
             "Lowering the gear automatically selects the nearest friendly airbase (no keybind needed).");
+        GlideslopeWithGearUp = Config.Bind(
+            "Approach Assist", "GlideslopeWithGearUp", true,
+            "Draw the glideslope as soon as an airbase is selected, instead of only with the gear down.");
         SelectKey = Config.Bind(
             "Approach Assist", "SelectKey", new KeyboardShortcut(KeyCode.L),
             "Optional: cycles friendly airbases nearest-first; one press past the last turns guidance off. Also accepts JoystickButton0-19 for HOTAS/controller. Clicking an airbase icon on the maximized map works too.");

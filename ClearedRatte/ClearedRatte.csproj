@@ -34,6 +34,10 @@
     <Reference Include="Mirage">
       <HintPath>$(GameDirectory)/NuclearOption_Data/Managed/Mirage.dll</HintPath>
     </Reference>
+    <!--The overlay's glideslope line and the map icons are uGUI Images.-->
+    <Reference Include="UnityEngine.UI">
+      <HintPath>$(GameDirectory)/NuclearOption_Data/Managed/UnityEngine.UI.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <!--Copy the plugin into the local game install after every build.-->
