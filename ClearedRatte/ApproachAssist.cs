@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using HarmonyLib;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -419,7 +420,7 @@ internal static class ApproachAssistGlideslopePatch
     {
         if (AirbaseMarkerField?.GetValue(overlay) is Image marker)
             marker.enabled = false;
-        if (AirbaseLabelField?.GetValue(overlay) is Text label)
+        if (AirbaseLabelField?.GetValue(overlay) is TMP_Text label)
             label.enabled = false;
     }
 

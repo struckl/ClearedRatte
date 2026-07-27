@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using HarmonyLib;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -32,9 +33,9 @@ internal static class ApproachDisplay
 
     private static Transform parent;
     private static Image lineTemplate;
-    private static Text textTemplate;
+    private static TextMeshProUGUI textTemplate;
     private static readonly List<Image> linePool = new List<Image>();
-    private static readonly List<Text> textPool = new List<Text>();
+    private static readonly List<TextMeshProUGUI> textPool = new List<TextMeshProUGUI>();
     private static int linesUsed;
     private static int textsUsed;
 
@@ -252,7 +253,7 @@ internal static class ApproachDisplay
     private static void DrawDataBlock(in ApproachState state, Vector3 anchor, float unit,
         float localizerY, Color color)
     {
-        Text text = NextText();
+        TextMeshProUGUI text = NextText();
         if (text == null)
             return;
 
@@ -265,9 +266,9 @@ internal static class ApproachDisplay
         text.text = $"{UnitConverter.DistanceReading(state.Slant)}   {timeToGo}\n"
             + $"{UnitConverter.SpeedReading(state.Speed)}   {reference}";
         text.color = color;
-        text.alignment = TextAnchor.UpperCenter;
-        text.horizontalOverflow = HorizontalWrapMode.Overflow;
-        text.verticalOverflow = VerticalWrapMode.Overflow;
+        text.alignment = TextAlignmentOptions.Top;
+        text.enableWordWrapping = false;
+        text.overflowMode = TextOverflowModes.Overflow;
         text.fontSize = Mathf.Max(9, Mathf.RoundToInt(
             PlayerSettings.overlayTextSize * 0.5f * Mathf.Clamp(Plugin.DisplayScale.Value, 0.4f, 2f)));
         text.transform.position = new Vector3(
@@ -473,7 +474,7 @@ internal static class ApproachDisplay
 
         lineTemplate = template;
         parent = template.transform.parent;
-        textTemplate = AccessTools.Field(typeof(AirbaseOverlay), "airbaseLabel")?.GetValue(overlay) as Text;
+        textTemplate = AccessTools.Field(typeof(AirbaseOverlay), "airbaseLabel")?.GetValue(overlay) as TextMeshProUGUI;
         return true;
     }
 
@@ -495,17 +496,17 @@ internal static class ApproachDisplay
         return line;
     }
 
-    private static Text NextText()
+    private static TextMeshProUGUI NextText()
     {
         if (textTemplate == null)
             return null;
         if (textsUsed < textPool.Count)
         {
-            Text pooled = textPool[textsUsed++];
+            TextMeshProUGUI pooled = textPool[textsUsed++];
             return pooled != null ? pooled : null;
         }
 
-        Text text = Object.Instantiate(textTemplate, parent);
+        TextMeshProUGUI text = Object.Instantiate(textTemplate, parent);
         text.name = "ClearedRatteText";
         text.raycastTarget = false;
         text.transform.localScale = Vector3.one;
