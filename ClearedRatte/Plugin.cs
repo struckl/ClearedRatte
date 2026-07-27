@@ -49,54 +49,79 @@ public class Plugin : BaseUnityPlugin
     private void BindConfig()
     {
         Enabled = Config.Bind(
-            "Approach Assist", "Enabled", true,
-            "Select a friendly airbase for landing guidance at any range.");
+            "1. General", "Enable mod", true,
+            "Master switch for the whole mod. On: you can select a friendly airbase "
+            + "and get landing guidance -- a glidepath tunnel, ILS-style landing "
+            + "instruments and a decluttered HUD (each set up in the sections below). "
+            + "Off: the mod does nothing.");
+
+        SelectKey = Config.Bind(
+            "2. Airbase selection", "Select airbase key", new KeyboardShortcut(KeyCode.L),
+            "Press to cycle through friendly airbases, nearest first; one press past "
+            + "the last one turns guidance off again. You can also click an airbase "
+            + "icon on the maximized map instead. For a HOTAS or controller, set the "
+            + "value to JoystickButton0 through JoystickButton19.");
         AutoSelectOnGearDown = Config.Bind(
-            "Approach Assist", "AutoSelectOnGearDown", true,
-            "Lowering the gear automatically selects the nearest friendly airbase (no keybind needed).");
+            "2. Airbase selection", "Auto-select on gear down", true,
+            "Lowering the landing gear automatically selects the nearest friendly "
+            + "airbase, so you get guidance without pressing anything.");
+
         HighwayInTheSky = Config.Bind(
-            "Approach Display", "HighwayInTheSky", true,
-            "Fly-through gates down the glidepath, with the runway outline and rails, instead of the single native glideslope line.");
+            "3. Approach display", "Glidepath tunnel", true,
+            "Show the approach as a series of gates you fly through down to the "
+            + "runway ('highway in the sky'), plus a runway outline. Off: only the "
+            + "game's normal single glideslope line is shown.");
         ApproachInstruments = Config.Bind(
-            "Approach Display", "ApproachInstruments", true,
-            "ILS-style localizer and glidepath scales, a virtual PAPI and a data block, drawn at the velocity vector.");
+            "3. Approach display", "Landing instruments", true,
+            "Show ILS-style scales at the velocity vector: left/right of the runway "
+            + "centerline, above/below the glidepath, plus approach lights (a virtual "
+            + "PAPI) and a small block with the numbers.");
         DisplayScale = Config.Bind(
-            "Approach Display", "DisplayScale", 1f,
+            "3. Approach display", "Instrument size", 1f,
             new ConfigDescription(
-                "Size of the deviation cluster and its readout. Below 1 is tighter and further out of the way.",
+                "Size of the landing instruments. 1 = normal; smaller values are more "
+                + "compact and further out of the way.",
                 new AcceptableValueRange<float>(0.4f, 2f)));
         TunnelGates = Config.Bind(
-            "Approach Display", "TunnelGates", 9,
+            "3. Approach display", "Tunnel gate count", 9,
             new ConfigDescription(
-                "How many gates the tunnel is built from. Fewer is cleaner, more reaches further out.",
+                "How many gates the glidepath tunnel is built from. Fewer = cleaner "
+                + "picture, more = the tunnel reaches further out from the runway.",
                 new AcceptableValueRange<int>(3, 14)));
         GlideslopeWithGearUp = Config.Bind(
-            "Approach Display", "GlideslopeWithGearUp", true,
-            "With HighwayInTheSky off: draw the native glideslope line as soon as an airbase is selected, instead of only with the gear down.");
-        SelectKey = Config.Bind(
-            "Approach Assist", "SelectKey", new KeyboardShortcut(KeyCode.L),
-            "Optional: cycles friendly airbases nearest-first; one press past the last turns guidance off. Also accepts JoystickButton0-19 for HOTAS/controller. Clicking an airbase icon on the maximized map works too.");
+            "3. Approach display", "Glideslope line with gear up", true,
+            "Only matters when 'Glidepath tunnel' is off: show the game's glideslope "
+            + "line as soon as an airbase is selected, instead of only once the gear "
+            + "is down.");
 
         DeclutterOnSelect = Config.Bind(
-            "Approach Declutter", "DeclutterOnSelect", true,
-            "Clear combat clutter off the HUD as soon as an airbase is selected, instead of waiting for the gear-down hiding on short final. Everything comes back when guidance is turned off.");
+            "4. HUD declutter", "Declutter during approach", true,
+            "Hide combat clutter from the HUD while landing guidance is active. What "
+            + "exactly gets hidden is chosen below; everything comes back the moment "
+            + "guidance is turned off. Off: this mod never hides anything (the game "
+            + "still does its own gear-down hiding on short final).");
         HideUnitMarkers = Config.Bind(
-            "Approach Declutter", "HideUnitMarkers", true,
-            "Hide the HUD unit markers, objective pointer and hit markers.");
+            "4. HUD declutter", "Hide unit markers", true,
+            "Hide the markers over friendly and enemy units, the objective pointer "
+            + "and hit markers.");
         HideAirbaseLabel = Config.Bind(
-            "Approach Declutter", "HideAirbaseLabel", true,
-            "Hide the floating airbase name and range marker for the selected base. The approach picture already shows you where it is.");
+            "4. HUD declutter", "Hide airbase label", true,
+            "Hide the floating name and distance tag on the selected airbase. The "
+            + "approach display already shows you where the runway is.");
         HideTargetMarkers = Config.Bind(
-            "Approach Declutter", "HideTargetMarkers", true,
-            "Hide the target designator, off-screen target arrow and target label.");
+            "4. HUD declutter", "Hide target markers", true,
+            "Hide the target designator box, the arrow pointing to an off-screen "
+            + "target, and the target's label.");
         HideWeaponUI = Config.Bind(
-            "Approach Declutter", "HideWeaponUI", false,
-            "Hide the weapon reticle in the middle of the HUD. Note that the weapon UI stops updating while it is hidden.");
+            "4. HUD declutter", "Hide weapon reticle", false,
+            "Hide the aiming reticle in the middle of the HUD. Note: the reticle "
+            + "stops updating while it is hidden.");
         HideWeaponStatus = Config.Bind(
-            "Approach Declutter", "HideWeaponStatus", false,
+            "4. HUD declutter", "Hide weapon status panel", false,
             "Hide the weapon status panel in the top right corner.");
         HideThreatList = Config.Bind(
-            "Approach Declutter", "HideThreatList", false,
-            "Hide the threat list. Off by default: being shot at on final is worth knowing about.");
+            "4. HUD declutter", "Hide threat list", false,
+            "Hide the list of threats. Off by default: knowing you are being shot at "
+            + "on final is usually worth the clutter.");
     }
 }
