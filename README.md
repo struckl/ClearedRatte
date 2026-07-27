@@ -1,4 +1,4 @@
-# Cleared Ratte
+# Cleared Ratte | Nuclear Option
 
 Deliberate landing guidance for
 [Nuclear Option](https://store.steampowered.com/app/2168680/Nuclear_Option/).
@@ -117,38 +117,43 @@ alone by default — being shot at on final is worth knowing about.
 Settings are editable in-game with
 [ConfigurationManager](https://github.com/BepInEx/BepInEx.ConfigurationManager).
 
-`Approach Assist` — picking the base:
+`1. General`:
 
 | Setting | Default | Description |
 | --- | --- | --- |
-| `Enabled` | `true` | Select a friendly airbase for landing guidance at any range. |
-| `AutoSelectOnGearDown` | `true` | Lowering the gear selects the nearest friendly airbase automatically. |
-| `SelectKey` | `L` | Cycles friendly airbases nearest-first; one press past the last turns guidance off. Accepts `JoystickButton0`–`19` too. |
+| `Enable mod` | `true` | Master switch for the whole mod. |
 
-`Approach Display` — what gets drawn:
+`2. Airbase selection` — picking the base:
 
 | Setting | Default | Description |
 | --- | --- | --- |
-| `HighwayInTheSky` | `true` | Fly-through gates down the glidepath, with runway outline and rails, replacing the native glideslope line. |
-| `ApproachInstruments` | `true` | Localizer and glidepath scales, virtual PAPI and data block at the velocity vector. |
-| `DisplayScale` | `1.0` | Size of the deviation cluster and its readout, `0.4`–`2.0`. Below 1 is tighter and further out of the way. |
-| `TunnelGates` | `9` | How many gates the tunnel is built from, `3`–`14`. Fewer is cleaner, more reaches further out. |
-| `GlideslopeWithGearUp` | `true` | With `HighwayInTheSky` off: draw the native line on selection instead of only with the gear down. |
+| `Select airbase key` | `L` | Cycles friendly airbases nearest-first; one press past the last turns guidance off. Accepts `JoystickButton0`–`19` too. |
+| `Auto-select on gear down` | `true` | Lowering the gear selects the nearest friendly airbase automatically. |
+
+`3. Approach display` — what gets drawn:
+
+| Setting | Default | Description |
+| --- | --- | --- |
+| `Glidepath tunnel` | `true` | Fly-through gates down the glidepath, with runway outline and rails, replacing the native glideslope line. |
+| `Landing instruments` | `true` | Localizer and glidepath scales, virtual PAPI and data block at the velocity vector. |
+| `Instrument size` | `1.0` | Size of the landing instruments, `0.4`–`2.0`. Below 1 is tighter and further out of the way. |
+| `Tunnel gate count` | `9` | How many gates the tunnel is built from, `3`–`14`. Fewer is cleaner, more reaches further out. |
+| `Glideslope line with gear up` | `true` | With `Glidepath tunnel` off: draw the native line on selection instead of only with the gear down. |
 
 Turn both display options off to keep the stock glideslope line and use Cleared
 Ratte purely for picking the base.
 
-`Approach Declutter` — what gets cleared away while a base is selected:
+`4. HUD declutter` — what gets cleared away while a base is selected:
 
 | Setting | Default | Description |
 | --- | --- | --- |
-| `DeclutterOnSelect` | `true` | Master switch. Clears the HUD on selection instead of waiting for the gear-down hiding on short final. |
-| `HideUnitMarkers` | `true` | HUD unit markers, objective pointer and hit markers. |
-| `HideAirbaseLabel` | `true` | The floating airbase name and range marker for the selected base. |
-| `HideTargetMarkers` | `true` | Target designator, off-screen target arrow and target label. |
-| `HideWeaponUI` | `false` | The weapon reticle in the middle of the HUD. The weapon UI stops updating while hidden. |
-| `HideWeaponStatus` | `false` | The weapon status panel in the top right corner. |
-| `HideThreatList` | `false` | The threat list. |
+| `Declutter during approach` | `true` | Master switch. Clears the HUD on selection instead of waiting for the gear-down hiding on short final. |
+| `Hide unit markers` | `true` | HUD unit markers, objective pointer and hit markers. |
+| `Hide airbase label` | `true` | The floating airbase name and range marker for the selected base. |
+| `Hide target markers` | `true` | Target designator, off-screen target arrow and target label. |
+| `Hide weapon reticle` | `false` | The weapon reticle in the middle of the HUD. The weapon UI stops updating while hidden. |
+| `Hide weapon status panel` | `false` | The weapon status panel in the top right corner. |
+| `Hide threat list` | `false` | The threat list. |
 
 ## Building
 
