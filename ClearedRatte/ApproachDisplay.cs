@@ -142,8 +142,8 @@ internal static class ApproachDisplay
             Color gate = Fade(color, alpha);
             float width = aimFrame ? 1.8f : 1f;
 
-            Vector3 center = runway.GetGlideslopeAimpoint(
-                aircraft, along, usage.Reverse, state.TimeToReach(along));
+            Vector3 center = usage.GetGlideslopeAimpoint(
+                aircraft, along, state.TimeToReach(along));
             Vector3 bottomLeft = center - across - up;
             Vector3 bottomRight = center + across - up;
             Vector3 topLeft = center - across + up;
