@@ -181,3 +181,7 @@ Approach assist code by Lukas Struckl. Built on
 [HarmonyX](https://github.com/BepInEx/HarmonyX). Originally part of
 [MKMods](https://github.com/struckl/MKModsNO), a fork of
 [mkualquiera/nuclear_option_modding](https://github.com/mkualquiera/nuclear_option_modding).
+
+## License
+
+[R.A.T.S. Source License](LICENSE): read it, fork it, send fixes; no re-uploads, no reuse in other projects. Releases before 2026-11-18 stay MIT. Code that came from MKMods keeps its MIT license: [THIRD-PARTY.txt](THIRD-PARTY.txt).
